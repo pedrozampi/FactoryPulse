@@ -1,0 +1,25 @@
+{
+  "name": "factory-pulse-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo FactoryPulse - Telemetria Industrial com NestJS, RabbitMQ, TimescaleDB e Next.js",
+  "scripts": {
+    "build": "pnpm --filter factory-pulse build && pnpm --filter factory-pulse-dashboard build",
+    "build:backend": "pnpm --filter factory-pulse build",
+    "build:dashboard": "pnpm --filter factory-pulse-dashboard build",
+    "dev:ingestion": "pnpm --filter factory-pulse start:ingestion:dev",
+    "dev:consumer": "pnpm --filter factory-pulse start:consumer:dev",
+    "dev:query": "pnpm --filter factory-pulse start:query:dev",
+    "dev:dashboard": "pnpm --filter factory-pulse-dashboard dev",
+    "test": "pnpm --filter factory-pulse test",
+    "lint": "pnpm --filter factory-pulse lint && pnpm --filter factory-pulse-dashboard lint",
+    "format": "pnpm --filter factory-pulse format",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
+

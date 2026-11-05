@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/ingestion-service/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/ingestion-service/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/ingestion-service",
+  "projects": {
+    "ingestion-service": {
+      "type": "application",
+      "root": "apps/ingestion-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/ingestion-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ingestion-service/tsconfig.app.json"
+      }
+    },
+    "consumer-worker": {
+      "type": "application",
+      "root": "apps/consumer-worker",
+      "entryFile": "main",
+      "sourceRoot": "apps/consumer-worker/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/consumer-worker/tsconfig.app.json"
+      }
+    },
+    "query-service": {
+      "type": "application",
+      "root": "apps/query-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/query-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/query-service/tsconfig.app.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    }
+  }
+}

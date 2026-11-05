@@ -1,0 +1,103 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: factory-pulse-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: factory-pulse-timescaledb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: factory_pulse
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d factory_pulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ingestion-service:
+    build:
+      context: ./apps/factory-pulse
+      dockerfile: Dockerfile
+    container_name: factory-pulse-ingestion
+    command: ["node", "dist/apps/ingestion-service/main"]
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  consumer-worker:
+    build:
+      context: ./apps/factory-pulse
+      dockerfile: Dockerfile
+    container_name: factory-pulse-consumer
+    command: ["node", "dist/apps/consumer-worker/main"]
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      DATABASE_URL: postgresql://postgres:password@timescaledb:5432/factory_pulse
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  query-service:
+    build:
+      context: ./apps/factory-pulse
+      dockerfile: Dockerfile
+    container_name: factory-pulse-query
+    command: ["node", "dist/apps/query-service/main"]
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:password@timescaledb:5432/factory_pulse
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./apps/dashboard
+      dockerfile: Dockerfile
+    container_name: factory-pulse-dashboard
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      QUERY_SERVICE_URL: http://query-service:3001
+      INGESTION_SERVICE_URL: http://ingestion-service:3000
+    depends_on:
+      - query-service
+      - ingestion-service
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  timescaledb_data:
+
